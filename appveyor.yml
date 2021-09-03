@@ -11,17 +11,18 @@ environment:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - pip install parse wheel"
+  - pip install parse wheel pytest"
 
 build: off
 
 test_script:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - pip install ."
+  - "pip install ."
+  - "pytest-3"
 
-after_test:
+  after_test:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - python scripts\\winpackage.py"
+  - "python scripts\\winpackage.py"
 
 artifacts:
   - path: "*.zip"
