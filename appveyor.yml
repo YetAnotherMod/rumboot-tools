@@ -20,7 +20,7 @@ test_script:
   - "pip install ."
   - "pytest-3"
 
-  after_test:
+after_test:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "python scripts\\winpackage.py"
 
