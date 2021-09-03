@@ -1,7 +1,7 @@
 from rumboot.chipDb import ChipDb
 
 
-def smoke_test():
+def test_chipdb():
     db = ChipDb("rumboot.chips")
     c = db["basis"]
     assert c.chip_id == 3
