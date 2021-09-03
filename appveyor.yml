@@ -18,7 +18,7 @@ build: off
 test_script:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "pip install ."
-  - "pytest-3"
+  - "pytest"
 
 after_test:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
