@@ -13,15 +13,20 @@ import serial.rfc2217
 import socket
 import select
 import signal
+import tempfile
+import subprocess
 
 class redirector(threading.Thread):
     alive = False
     fatal = False
     callback = None
+    started = 0
+    max_connected_time = -1
 
-    def configure(self, serial, socket):
+    def configure(self, serial, socket, timeout):
         self.serial = serial
         self.socket = socket
+        self.max_connected_time = timeout
 
     def set_callback(self, cb):
         self.callback = cb
@@ -38,54 +43,81 @@ class redirector(threading.Thread):
             print("calling", fatal)
             self.callback(fatal)
 
+    def check_timeout(self):
+        if self.max_connected_time == -1:
+            return False # No timeout
+        if time.monotonic() - self.started > self.max_connected_time:
+            self.socket.close()
+            return True
+        return False
+
+    def readSerial(self):
+        if isinstance(self.serial, serial.Serial):
+            return bytearray(self.serial.read(self.serial.inWaiting()))
+        else:
+            raise Exception("Not pyserial!")
+
+    def writeSerial(self, data):
+        if isinstance(self.serial, serial.Serial):
+            return self.serial.write(data)
+        else:
+            raise Exception("Not pyserial!")
+
+    def nodelay(self, sock):
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 1)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 1)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+    def loop_once(self):
+        fromserial = bytearray(b"")
+        fromsocket = bytearray(b"")
+
+        ready_to_read, ready_to_write, in_error = select.select(
+            [self.socket, self.serial.fileno()],
+            [self.socket, self.serial.fileno()],
+            [self.socket, self.serial.fileno()],
+            1)
+        for sock in ready_to_read:       
+            if sock == self.serial.fileno():
+                fromserial = fromserial + self.readSerial()
+                if self.socket in ready_to_write:
+                    sent = self.socket.send(fromserial)
+                    del fromserial[0:sent]
+            if sock == self.socket:
+                tmp = self.socket.recv(1024)
+                if len(tmp) == 0:
+                    self.cleanup(False)
+                    return False
+                fromsocket = fromsocket + bytearray(tmp)
+                if self.serial.fileno() in ready_to_write:
+                    ret = self.writeSerial(fromsocket)
+                    del fromsocket[0:ret]
+        for sock in in_error:
+            if sock == self.serial.fileno():
+                print("Something bad with serial port")
+                self.cleanup(True)
+                return False
+            if sock == self.socket:
+                print("Disconnect?")
+                self.cleanup(False)               
+                return False
+        return True
+
     def run(self):
         self.alive = True
         self.fatal = False
         self.socket.setblocking(0)
-
-        fromserial = bytearray(b"")
-        fromsocket = bytearray(b"")
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        self.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 1)
-        self.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 1)
-        self.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
-        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-
+        self.nodelay(self.socket)
+        self.started = time.monotonic()
         try:
-            while True:
-                ready_to_read, ready_to_write, in_error = select.select(
-                    [self.socket, self.serial.fileno()],
-                    [self.socket, self.serial.fileno()],
-                    [self.socket, self.serial.fileno()],
-                    1)
+            while self.loop_once():
+                if self.check_timeout():
+                    print("Time's up. Kicking client...")
+                    self.cleanup(False)
+                    return
 
-
-                for sock in ready_to_read:       
-                    if sock == self.serial.fileno():
-                        fromserial = fromserial + bytearray(self.serial.read(self.serial.inWaiting()))
-                        if self.socket in ready_to_write:
-                            sent = self.socket.send(fromserial)
-                            del fromserial[0:sent]
-
-                    if sock == self.socket:
-                        tmp = self.socket.recv(1024)
-                        if len(tmp) == 0:
-                            self.cleanup(False)
-                            return
-                        fromsocket = fromsocket + bytearray(tmp)
-                        if self.serial.fileno() in ready_to_write:
-                            ret = self.serial.write(fromsocket)
-                            del fromsocket[0:ret]
-
-                for sock in in_error:
-                    if sock == self.serial.fileno():
-                        print("Something bad with serial port")
-                        self.cleanup(True)
-                        return
-                    if sock == self.socket:
-                        print("Disconnect?")
-                        self.cleanup(False)               
-                        return
         except BrokenPipeError:
             self.cleanup(False)
             return
@@ -100,6 +132,97 @@ class redirector(threading.Thread):
             self.cleanup(False)
             raise
 
+class appredirector(redirector):
+    welcome = b'''
+    RC Module's          __                __
+   _______  ______ ___  / /_  ____  ____  / /_
+  / ___/ / / / __ `__ \/ __ \/ __ \/ __ \/ __/
+ / /  / /_/ / / / / / / /_/ / /_/ / /_/ / /_
+/_/   \__,_/_/ /_/ /_/_.___/\____/\____/\__/
+
+boot: Native Debug Environment
+boot: host: Hit 'X' for X-Modem upload
+
+
+'''
+
+    def cleanup(self, fatal):
+        #TODO: Kill the app
+        self.pipe.kill()
+        os.unlink(self.tempfile)
+        return super().cleanup(fatal)
+
+    def run(self):
+        self.nodelay(self.socket)
+        self._buf = b""
+        def getc(size, timeout=10):
+            ready = select.select([self.socket], [], [], timeout)
+            if ready[0]:
+                return self.socket.recv(size, socket.MSG_DONTWAIT)
+            return None
+
+        def putc(data, timeout=10):
+            self.socket.sendall(data)
+            return len(data)
+
+        self.modem = XMODEM(getc, putc, mode="xmodem1k")
+        self.socket.sendall(self.welcome)
+        while self.socket.recv(1) != b"X":
+            pass
+        self.socket.sendall(b"C")
+        tmp = tempfile.NamedTemporaryFile(mode="wb+", prefix="rumboot_daemon_temp_", delete=False)
+        self.modem.recv(tmp)
+        tmp.close()
+        os.chmod(tmp.name, 755)
+        self.pipe = subprocess.Popen([tmp.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.tempfile = tmp.name
+        return super().run()
+
+    def readSerial(self):
+        return self.pipe.stdout.read()
+
+    def writeSerial(self, data):
+        return self.pipe.stdin.write(data)
+
+    def loop_once(self):
+        fromserial = bytearray(b"")
+        fromsocket = bytearray(b"")
+
+        ready_to_read, ready_to_write, in_error = select.select(
+            [self.socket, self.pipe.stdout],
+            [self.socket, self.pipe.stdin],
+            [self.socket],
+            1)
+        for sock in ready_to_read:       
+            if sock == self.pipe.stdout:
+                fromserial = fromserial + self.readSerial()
+                if self.socket in ready_to_write:
+                    sent = self.socket.send(fromserial)
+                    del fromserial[0:sent]
+            if sock == self.socket:
+                tmp = self.socket.recv(1024)
+                if len(tmp) == 0:
+                    self.cleanup(False)
+                    return False
+                fromsocket = fromsocket + bytearray(tmp)
+                if self.pipe.stdin in ready_to_write:
+                    ret = self.writeSerial(fromsocket)
+                    del fromsocket[0:ret]
+        for sock in in_error:
+            if sock == self.serial.fileno():
+                print("Something bad with serial port")
+                self.cleanup(True)
+                return False
+            if sock == self.socket:
+                print("Disconnect?")
+                self.cleanup(False)               
+                return False
+        if self.pipe.poll() is not None:
+            self.socket.sendall(f"boot: host: Back in rom, code {self.pipe.poll()}\n".encode())
+            self.cleanup(False)
+            return False
+
+        return True
 class server:
     client_queue = [ ]
     worker = None
@@ -108,12 +231,14 @@ class server:
     pid = os.getpid()
     binaries = []
 
-    def __init__(self, terminal, tcplisten):
+    def __init__(self, terminal, tcplisten, timeout=-1, isnativedebug=False):
         self.serial = terminal.serial()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         addr, port = tcplisten.split(":")
         self.sock.bind((addr, int(port)))
         self.term = terminal
+        self.max_connected_time = timeout
+        self.isnativedebug = isnativedebug
         terminal.chip.hacks["skipsync"] = True
 
     def set_reset_seq(self, rst):
@@ -152,12 +277,15 @@ class server:
                 text = b"U\nrumboot-daemon: Preloading your board board...\n\n\n"
                 client["connection"].sendall(text)
 
-                print(self.binaries)
                 self.term.add_binaries(self.binaries)
                 self.term.loop(break_after_uploads=True)
 
-            self.worker = redirector()
-            self.worker.configure(self.serial, client["connection"])
+            if not self.isnativedebug:
+                self.worker = redirector()
+            else:
+                self.worker = appredirector()
+
+            self.worker.configure(self.serial, client["connection"], self.max_connected_time)
             self.worker.set_callback(the_callback)
 
             # We can't do it, if we're working remotely
