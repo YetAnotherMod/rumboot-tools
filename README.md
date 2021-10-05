@@ -155,7 +155,7 @@ usage: rumboot-packimage [-h] -f FILE [-i] [-c] [-C] [-r] [-R relocation] [-Z]
                          [--set-data offset value] [-g key] [-s key value]
                          [-e] [-w WRAP]
 
-rumboot-packimage 0.9.18 - Universal RumBoot Image Manipulation Tool
+rumboot-packimage 0.9.19 - Universal RumBoot Image Manipulation Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -279,7 +279,7 @@ usage: rumboot-xrun [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port] [-b speed]
                     [--pl2303-invert-power] [--pl2303-swap]
                     [-A [PLUSARGS ...]] [-R] [-I] [--replay-no-exit]
 
-rumboot-xrun 0.9.18 - RumBoot X-Modem execution tool
+rumboot-xrun 0.9.19 - RumBoot X-Modem execution tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -687,7 +687,7 @@ usage: rumboot-xflash [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port]
                       [--pl2303-invert-reset] [--pl2303-invert-power]
                       [--pl2303-swap]
 
-rumboot-xflash 0.9.18 - RumBoot firmware updater tool
+rumboot-xflash 0.9.19 - RumBoot firmware updater tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -1098,7 +1098,7 @@ _rumboot-combine_ is a simple to tool to compose a chain of several image file. 
 ~# rumboot-combine --help
 usage: rumboot-combine [-h] -i INPUT -o OUTPUT [-a ALIGN]
 
-rumboot-combine 0.9.18 - RumBoot Image Merger Tool
+rumboot-combine 0.9.19 - RumBoot Image Merger Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
