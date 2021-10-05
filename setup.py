@@ -29,7 +29,8 @@ setup(
         "pyqt5",
         "pygpiotools",
         "argcomplete",
-        "humanfriendly"
+        "humanfriendly",
+        "requests"
         ],
 
     extras_require = {
