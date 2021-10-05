@@ -1,4 +1,4 @@
-__version__ = "0.9.20"
+__version__ = "0.9.21"
 __copyright__ = """
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
