@@ -157,9 +157,13 @@ usage: rumboot-packimage [-h] -f FILE [-i] [-c] [-C] [-r] [-R relocation] [-Z]
 
 rumboot-packimage 0.9.18 - Universal RumBoot Image Manipulation Tool
 
-(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, RC Module
-https://module.ru
-https://github.com/RC-MODULE
+(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
+https://module.ru / https://github.com/RC-MODULE
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -267,16 +271,23 @@ usage: rumboot-xrun [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port] [-b speed]
                     [--edcl-mac EDCL_MAC] [--edcl-timeout EDCL_TIMEOUT]
                     [-r method] [--apc-host APC_HOST] [--apc-user APC_USER]
                     [--apc-pass APC_PASS] [--apc-outlet APC_OUTLET]
+                    [--hass-power-switch]
+                    [--hass-reset-switch HASS_RESET_SWITCH]
+                    [--hass-host-switch HASS_HOST_SWITCH]
+                    [--hass-token HASS_TOKEN] [--hass-server HASS_SERVER]
                     [--mt12505-serial MT12505_SERIAL] [--pl2303-invert-reset]
                     [--pl2303-invert-power] [--pl2303-swap]
-                    [-A [PLUSARGS [PLUSARGS ...]]] [-R] [-I]
-                    [--replay-no-exit]
+                    [-A [PLUSARGS ...]] [-R] [-I] [--replay-no-exit]
 
 rumboot-xrun 0.9.18 - RumBoot X-Modem execution tool
 
-(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, RC Module
-https://module.ru
-https://github.com/RC-MODULE
+(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
+https://module.ru / https://github.com/RC-MODULE
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -306,7 +317,7 @@ Reset Sequence options:
   These options control how the target board will be reset
 
   -r method, --reset method
-                        Reset sequence to use (apc base mt12505 pl2303)
+                        Reset sequence to use (apc base hass mt12505 pl2303)
 
 apc reset sequence options:
   --apc-host APC_HOST   APC IP Address/hostname
@@ -314,6 +325,17 @@ apc reset sequence options:
   --apc-pass APC_PASS   APC Password
   --apc-outlet APC_OUTLET
                         APC Outlet Number
+
+hass reset sequence options:
+  --hass-power-switch   Home Assistant power switch
+  --hass-reset-switch HASS_RESET_SWITCH
+                        Home Assistant reset switch
+  --hass-host-switch HASS_HOST_SWITCH
+                        Home Assistant host switch
+  --hass-token HASS_TOKEN
+                        Secret token
+  --hass-server HASS_SERVER
+                        Hass server URL
 
 mt12505 reset sequence options:
   --mt12505-serial MT12505_SERIAL
@@ -333,7 +355,7 @@ Plusargs parser options:
           to be used for
           
 
-  -A [PLUSARGS [PLUSARGS ...]], --plusargs [PLUSARGS [PLUSARGS ...]]
+  -A [PLUSARGS ...], --plusargs [PLUSARGS ...]
 
 ```
 
@@ -653,19 +675,27 @@ Writing will always be about twice slower than reading, since readback is usuall
 usage: rumboot-xflash [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port]
                       [-b speed] [-e] [--force-static-arp] [--edcl-ip EDCL_IP]
                       [--edcl-mac EDCL_MAC] [--edcl-timeout EDCL_TIMEOUT] [-v]
-                      [-m memory] [-z SPL_PATH] [-o OFFSET] [-L LENGTH] [-R]
-                      [-W] [-r method] [--apc-host APC_HOST]
+                      [-m memory] [-z SPL_PATH] [--no-spl] [-o OFFSET]
+                      [-L LENGTH] [-R] [-W] [-E] [-F FIRMWARE_FILE]
+                      [-U UPLOAD_BAUDRATE] [-r method] [--apc-host APC_HOST]
                       [--apc-user APC_USER] [--apc-pass APC_PASS]
-                      [--apc-outlet APC_OUTLET]
+                      [--apc-outlet APC_OUTLET] [--hass-power-switch]
+                      [--hass-reset-switch HASS_RESET_SWITCH]
+                      [--hass-host-switch HASS_HOST_SWITCH]
+                      [--hass-token HASS_TOKEN] [--hass-server HASS_SERVER]
                       [--mt12505-serial MT12505_SERIAL]
                       [--pl2303-invert-reset] [--pl2303-invert-power]
                       [--pl2303-swap]
 
 rumboot-xflash 0.9.18 - RumBoot firmware updater tool
 
-(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, RC Module
-https://module.ru
-https://github.com/RC-MODULE
+(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
+https://module.ru / https://github.com/RC-MODULE
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -675,6 +705,8 @@ optional arguments:
                         Memory program. Help for a list of memories
   -z SPL_PATH, --spl-path SPL_PATH
                         Path for SPL writers (Debug only)
+  --no-spl              Do not upload spl, assume it boots on it's own (Debug
+                        only)
   -o OFFSET, --offset OFFSET
                         Memory offset for read/write operations
   -L LENGTH, --length LENGTH
@@ -682,6 +714,11 @@ optional arguments:
                         file/flash)
   -R, --read            Read flash to file
   -W, --write           Write flash from file
+  -E, --erase           Erase flash
+  -F FIRMWARE_FILE, --firmware-file FIRMWARE_FILE
+                        Write firmware from configuration file
+  -U UPLOAD_BAUDRATE, --upload-baudrate UPLOAD_BAUDRATE
+                        Change baudrate for uploads
 
 File Handling:
   -c chip_id, --chip_id chip_id
@@ -703,7 +740,7 @@ Reset Sequence options:
   These options control how the target board will be reset
 
   -r method, --reset method
-                        Reset sequence to use (apc base mt12505 pl2303)
+                        Reset sequence to use (apc base hass mt12505 pl2303)
 
 apc reset sequence options:
   --apc-host APC_HOST   APC IP Address/hostname
@@ -711,6 +748,17 @@ apc reset sequence options:
   --apc-pass APC_PASS   APC Password
   --apc-outlet APC_OUTLET
                         APC Outlet Number
+
+hass reset sequence options:
+  --hass-power-switch   Home Assistant power switch
+  --hass-reset-switch HASS_RESET_SWITCH
+                        Home Assistant reset switch
+  --hass-host-switch HASS_HOST_SWITCH
+                        Home Assistant host switch
+  --hass-token HASS_TOKEN
+                        Secret token
+  --hass-server HASS_SERVER
+                        Hass server URL
 
 mt12505 reset sequence options:
   --mt12505-serial MT12505_SERIAL
@@ -724,9 +772,6 @@ pl2303 reset sequence options:
   --pl2303-swap         Swap pl2303 reset and power mapping
 
 ```
-
-You can find what memories attached to the chip can be programmed by specifying chip name.
-
 ```
 ~# rumboot-xflash -m help -c mm7705
 [!] Using configuration file: /home/necromant/.rumboot.yaml
@@ -1055,9 +1100,13 @@ usage: rumboot-combine [-h] -i INPUT -o OUTPUT [-a ALIGN]
 
 rumboot-combine 0.9.18 - RumBoot Image Merger Tool
 
-(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, RC Module
-https://module.ru
-https://github.com/RC-MODULE
+(C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
+https://module.ru / https://github.com/RC-MODULE
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
 optional arguments:
   -h, --help            show this help message and exit
