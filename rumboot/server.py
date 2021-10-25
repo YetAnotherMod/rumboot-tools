@@ -157,21 +157,28 @@ boot: host: Hit 'X' for X-Modem upload
         self._buf = b""
         def getc(size, timeout=10):
             ready = select.select([self.socket], [], [], timeout)
+            ret = None
             if ready[0]:
-                return self.socket.recv(size, socket.MSG_DONTWAIT)
-            return None
+                ret = self.socket.recv(size, socket.MSG_DONTWAIT)
+            return ret
 
         def putc(data, timeout=10):
-            self.socket.sendall(data)
+            ret = self.socket.sendall(data, socket.MSG_DONTWAIT)
             return len(data)
 
         self.modem = XMODEM(getc, putc, mode="xmodem1k")
-        self.socket.sendall(self.welcome)
+        self.socket.sendall(self.welcome, socket.MSG_DONTWAIT)
         while self.socket.recv(1) != b"X":
             pass
-        self.socket.sendall(b"C")
+        #Dirty Workaround: Some ethernet controllers (xilinx) on prototype board
+        #Dirty Workaround: cause a huge wait when instructed to send just ONE byte
+        ret = self.socket.sendall(b"CC", socket.MSG_DONTWAIT)
         tmp = tempfile.NamedTemporaryFile(mode="wb+", prefix="rumboot_daemon_temp_", delete=False)
-        self.modem.recv(tmp)
+        try:
+            self.modem.recv(tmp)
+        except Exception as e:
+            self.socket.sendall(str(e), socket.MSG_DONTWAIT)
+            return 0
         tmp.close()
         os.chmod(tmp.name, 755)
         self.pipe = subprocess.Popen([tmp.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
