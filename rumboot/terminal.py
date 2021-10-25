@@ -199,6 +199,9 @@ class terminal:
                     break
                 c1 = c2
 
+        def flush(self, *args, **kwargs):
+            return self.ser.flush(*args, **kwargs)
+
         def write(self, *args, **kwargs):
             return self.ser.write(*args, **kwargs)
 
