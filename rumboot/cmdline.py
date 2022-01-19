@@ -66,9 +66,11 @@ class arghelper():
         dumps = { }
         for k,f in enumerate(files):
             target = f.replace(".bin", ".all")
+            builddir = os.path.dirname(target)
+            target = os.path.basename(target)
             dmp = f.replace(".bin", ".dmp")
             if rebuild:
-                bres = os.system("cmake --build . --target %s" % target)
+                bres = os.system(f"cmake --build {builddir} --target {target}")
                 if (bres != 0):
                     sys.exit(bres)
 

@@ -22,7 +22,7 @@ def cli():
         and use them for runtime file uploads. This option is intended
         to be used for
         """)
-    plus.add_argument('-A', '--plusargs', nargs='*')
+    plus.add_argument('-A', '--plusargs', action="append", nargs='*')
     parser.add_argument("-R", "--rebuild",
                         help="Attempt to rebuild/update target before uploading",
                         action="store_true",
@@ -51,14 +51,15 @@ def cli():
 
     plusargs = {}
     if opts.plusargs:
-        for a in opts.plusargs:
-            ret = parse("+{}={}", a)
-            if ret:
-                plusargs[ret[0]] = ret[1]
-                continue
-            ret = parse("+{}", a)
-            if ret:
-                plusargs[ret[0]] = True
+        for group in opts.plusargs:
+            for a in group:
+                ret = parse("+{}={}", a)
+                if ret:
+                    plusargs[ret[0]] = ret[1]
+                    continue
+                ret = parse("+{}", a)
+                if ret:
+                    plusargs[ret[0]] = True
 
     chip, term, reset = helper.create_core_stuff_from_options(opts)
 
