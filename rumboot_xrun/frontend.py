@@ -62,7 +62,9 @@ def cli():
                     plusargs[ret[0]] = True
 
     chip, term, reset = helper.create_core_stuff_from_options(opts)
-
+    if not term:
+        return 1
+        
     term.plusargs = plusargs
     try:
         romdump = open(dump_path + chip.romdump, "r")
