@@ -90,7 +90,7 @@ class runtime(basic_uploader):
         stream = open(fl, 'rb')
         if (self.term.xfer.how == "xmodem"):
             self.sync("X", True)
-        ret = self.term.xfer.send(stream, result[1], "Uploading")
+        ret = self.term.xfer.send(result[1], stream, "Uploading")
         stream.close()  
         if (self.term.xfer.how != "xmodem"):
             self.sync('E', True)
