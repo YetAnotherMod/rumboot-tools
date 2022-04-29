@@ -90,7 +90,9 @@ class tcl_dl(basic_uploader):
         else:
             fl = arg
         self.term.write("R".encode())
+        self.term.progress_start(f"Downloading file: {fl}", size)
         stream = open(fl, 'wb')
+        total = size
         while size > 0:
             toread = 4096
             if toread > size:
@@ -98,7 +100,9 @@ class tcl_dl(basic_uploader):
             data = self.term.read(toread)
             stream.write(data)
             size -= len(data)
+            self.term.progress_update(total, total - size, len(data))
         stream.close()
+        self.term.progress_end()
         return True
 
 
@@ -139,16 +143,19 @@ class runtime_tcp_ul(basic_uploader):
         stream = open(fl, 'rb')
         self.term.write('R'.encode())
         self.sync("R", True)
-        print("sync ok")
-        self.term.write(f'UPLOAD SIZE: {self.stream_size(stream):d} bytes\n'.encode())
+        size = self.stream_size(stream)
+        self.term.write(f'UPLOAD SIZE: {size:d} bytes\n'.encode())
+        self.term.progress_start(f"Uploading file: {fl}", size)
+        pos = 0
         while True:
-            print('.')
             data = stream.read(4096)
             if data == b'':
                 break
             self.term.write(data)
-        print("send ok")
-        stream.close()  
+            self.term.progress_update(size, pos, len(data))
+            pos += len(data)
+        stream.close()
+        self.term.progress_end()
         return True
 
 class incremental(basic_uploader):
