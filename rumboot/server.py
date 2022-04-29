@@ -2,6 +2,7 @@ import serial
 import sys
 from xmodem import XMODEM
 import os
+import fcntl
 from parse import parse
 import time
 import io
@@ -69,6 +70,10 @@ class redirector(threading.Thread):
         sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 1)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+    def nonblock(self, fd):
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
     def loop_once(self):
         fromserial = bytearray(b"")
@@ -148,6 +153,7 @@ boot: host: Hit 'X' for X-Modem upload
 
     def cleanup(self, fatal):
         #TODO: Kill the app
+        print("Cleaning up corpses...")
         self.pipe.kill()
         os.unlink(self.tempfile)
         return super().cleanup(fatal)
@@ -159,7 +165,7 @@ boot: host: Hit 'X' for X-Modem upload
             ready = select.select([self.socket], [], [], timeout)
             ret = None
             if ready[0]:
-                ret = self.socket.recv(size, socket.MSG_DONTWAIT)
+                ret = self.socket.recv(size)
             return ret
 
         def putc(data, timeout=10):
@@ -168,10 +174,13 @@ boot: host: Hit 'X' for X-Modem upload
 
         self.modem = XMODEM(getc, putc, mode="xmodem1k")
         self.socket.sendall(self.welcome, socket.MSG_DONTWAIT)
-        while self.socket.recv(1) != b"X":
-            pass
-        #Dirty Workaround: Some ethernet controllers (xilinx) on prototype board
-        #Dirty Workaround: cause a huge wait when instructed to send just ONE byte
+        while True:
+            data = self.socket.recv(1)
+            print(data)
+            if data == b'X':
+                break
+
+        #Workaround: We need three Cs: 'CC' is required for a sync, one for actual xmodem transfer
         ret = self.socket.sendall(b"CC", socket.MSG_DONTWAIT)
         tmp = tempfile.NamedTemporaryFile(mode="wb+", prefix="rumboot_daemon_temp_", delete=False)
         try:
@@ -182,14 +191,20 @@ boot: host: Hit 'X' for X-Modem upload
         tmp.close()
         os.chmod(tmp.name, 755)
         self.pipe = subprocess.Popen([tmp.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.nonblock(self.pipe.stdout.fileno())
         self.tempfile = tmp.name
         return super().run()
 
     def readSerial(self):
-        return self.pipe.stdout.read()
+        try:
+            ret = self.pipe.stdout.read()
+            return ret
+        except:
+            return b""
 
     def writeSerial(self, data):
-        return self.pipe.stdin.write(data)
+        self.pipe.stdin.write(data)
+        self.pipe.stdin.flush()
 
     def loop_once(self):
         fromserial = bytearray(b"")
