@@ -60,7 +60,6 @@ class smart_downloader(basic_uploader):
     }
 
     def action(self, trigger, result):
-        print(result)
         arg = result[2]
         if arg in self.term.plusargs:
             fl = self.term.plusargs[arg]
@@ -77,6 +76,31 @@ class smart_downloader(basic_uploader):
             self.sync("E", True)
 
         pass
+
+class tcl_dl(basic_uploader):
+    formats = {
+        "upload" : "DOWNLOAD: {:d} bytes from {:x} to {}. 'R' for RAW"
+    }
+
+    def action(self, trigger, result):
+        arg = result[2]
+        size = result[0]
+        if arg in self.term.plusargs:
+            fl = self.term.plusargs[arg]
+        else:
+            fl = arg
+        self.term.write("R".encode())
+        stream = open(fl, 'wb')
+        while size > 0:
+            toread = 4096
+            if toread > size:
+                toread = size
+            data = self.term.read(toread)
+            stream.write(data)
+            size -= len(data)
+        stream.close()
+        return True
+
 
 
 class runtime(basic_uploader):
@@ -96,7 +120,36 @@ class runtime(basic_uploader):
             self.sync('E', True)
         return ret
 
+class runtime_tcp_ul(basic_uploader):
+    formats = {
+        "runtime"           : "UPLOAD: {} to 0x{:x}. 'R' for raw upload",
+    }
 
+    def stream_size(self, stream):
+        pos = stream.tell()
+        stream.seek(0,2)
+        ln = stream.tell()
+        stream.seek(pos)
+        return ln - pos
+
+    def action(self, trigger, result):
+        print(trigger,result)
+        arg = result[0]
+        fl = self.term.plusargs[arg]
+        stream = open(fl, 'rb')
+        self.term.write('R'.encode())
+        self.sync("R", True)
+        print("sync ok")
+        self.term.write(f'UPLOAD SIZE: {self.stream_size(stream):d} bytes\n'.encode())
+        while True:
+            print('.')
+            data = stream.read(4096)
+            if data == b'':
+                break
+            self.term.write(data)
+        print("send ok")
+        stream.close()  
+        return True
 
 class incremental(basic_uploader):
     formats = {

@@ -190,9 +190,11 @@ boot: host: Hit 'X' for X-Modem upload
             return 0
         tmp.close()
         os.chmod(tmp.name, 755)
+        print('--- starting binary ---')
         self.pipe = subprocess.Popen([tmp.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.nonblock(self.pipe.stdout.fileno())
         self.tempfile = tmp.name
+        print(self.pipe)
         return super().run()
 
     def readSerial(self):

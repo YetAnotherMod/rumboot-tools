@@ -237,6 +237,7 @@ class terminal:
             lines = []
             while True:
                 line = self.readline()
+                print(line)
                 self.log(False, line, end='\n')
                 ret = parse(format, line)
                 if ret != None:
