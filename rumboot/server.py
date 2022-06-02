@@ -191,48 +191,65 @@ boot: host: Hit 'X' for X-Modem upload
         tmp.close()
         os.chmod(tmp.name, 755)
         print('--- starting binary ---')
-        self.pipe = subprocess.Popen([tmp.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.pipe = subprocess.Popen([tmp.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self.nonblock(self.pipe.stdout.fileno())
         self.tempfile = tmp.name
-        print(self.pipe)
         return super().run()
 
     def readSerial(self):
         try:
             ret = self.pipe.stdout.read()
             return ret
-        except:
+        except Exception as e:
+            print(e);
             return b""
 
     def writeSerial(self, data):
         self.pipe.stdin.write(data)
         self.pipe.stdin.flush()
 
-    def loop_once(self):
-        fromserial = bytearray(b"")
-        fromsocket = bytearray(b"")
+    fromserial = bytearray(b"")
+    fromsocket = bytearray(b"")
 
+    def loop_once(self):
         ready_to_read, ready_to_write, in_error = select.select(
             [self.socket, self.pipe.stdout],
             [self.socket, self.pipe.stdin],
             [self.socket],
             1)
-        for sock in ready_to_read:       
+
+        for sock in ready_to_read:
             if sock == self.pipe.stdout:
-                fromserial = fromserial + self.readSerial()
+                self.fromserial = self.fromserial + self.readSerial()
                 if self.socket in ready_to_write:
-                    sent = self.socket.send(fromserial)
-                    del fromserial[0:sent]
+                    sent = self.socket.send(self.fromserial)
+                    del self.fromserial[0:sent]
+
             if sock == self.socket:
                 tmp = self.socket.recv(1024)
                 if len(tmp) == 0:
                     self.cleanup(False)
                     return False
-                fromsocket = fromsocket + bytearray(tmp)
+                self.fromsocket = self.fromsocket + bytearray(tmp)
                 if self.pipe.stdin in ready_to_write:
-                    ret = self.writeSerial(fromsocket)
-                    del fromsocket[0:ret]
+                    ret = self.writeSerial(self.fromsocket)
+                    del self.fromsocket[0:ret]
+
+        for sock in ready_to_write:
+            if sock == self.pipe.stdin and len(self.fromsocket) > 0:
+                ret = self.writeSerial(self.fromsocket)
+                del self.fromsocket[0:ret]
+
+            if self.socket in ready_to_write and len(self.fromserial) > 0:
+                try:
+                    sent = self.socket.send(self.fromserial)
+                    del self.fromserial[0:sent]
+                except BlockingIOError:
+                    pass
+
         for sock in in_error:
+            fromserial = bytearray(b"")
+            fromsocket = bytearray(b"")
             if sock == self.serial.fileno():
                 print("Something bad with serial port")
                 self.cleanup(True)
@@ -241,6 +258,7 @@ boot: host: Hit 'X' for X-Modem upload
                 print("Disconnect?")
                 self.cleanup(False)               
                 return False
+
         if self.pipe.poll() is not None:
             self.socket.sendall(f"boot: host: Back in rom, code {self.pipe.poll()}\n".encode())
             self.cleanup(False)
