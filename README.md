@@ -155,7 +155,7 @@ usage: rumboot-packimage [-h] -f FILE [-i] [-c] [-C] [-r] [-R relocation] [-Z]
                          [--set-data offset value] [-g key] [-s key value]
                          [-e] [-w WRAP]
 
-rumboot-packimage 0.9.22 - Universal RumBoot Image Manipulation Tool
+rumboot-packimage 0.9.23 - Universal RumBoot Image Manipulation Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -275,11 +275,12 @@ usage: rumboot-xrun [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port] [-b speed]
                     [--hass-reset-switch HASS_RESET_SWITCH]
                     [--hass-host-switch HASS_HOST_SWITCH]
                     [--hass-token HASS_TOKEN] [--hass-server HASS_SERVER]
+                    [--mdb-ctl-port MDB_CTL_PORT]
                     [--mt12505-serial MT12505_SERIAL] [--pl2303-invert-reset]
                     [--pl2303-invert-power] [--pl2303-swap]
                     [-A [PLUSARGS ...]] [-R] [-I] [--replay-no-exit]
 
-rumboot-xrun 0.9.22 - RumBoot X-Modem execution tool
+rumboot-xrun 0.9.23 - RumBoot X-Modem execution tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -317,7 +318,8 @@ Reset Sequence options:
   These options control how the target board will be reset
 
   -r method, --reset method
-                        Reset sequence to use (apc base hass mt12505 pl2303)
+                        Reset sequence to use (apc base hass Serial mdb
+                        mt12505 pl2303)
 
 apc reset sequence options:
   --apc-host APC_HOST   APC IP Address/hostname
@@ -336,6 +338,10 @@ hass reset sequence options:
                         Secret token
   --hass-server HASS_SERVER
                         Hass server URL
+
+mdb reset sequence options:
+  --mdb-ctl-port MDB_CTL_PORT
+                        Malina Debug Bridge port
 
 mt12505 reset sequence options:
   --mt12505-serial MT12505_SERIAL
@@ -683,11 +689,12 @@ usage: rumboot-xflash [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port]
                       [--hass-reset-switch HASS_RESET_SWITCH]
                       [--hass-host-switch HASS_HOST_SWITCH]
                       [--hass-token HASS_TOKEN] [--hass-server HASS_SERVER]
+                      [--mdb-ctl-port MDB_CTL_PORT]
                       [--mt12505-serial MT12505_SERIAL]
                       [--pl2303-invert-reset] [--pl2303-invert-power]
                       [--pl2303-swap]
 
-rumboot-xflash 0.9.22 - RumBoot firmware updater tool
+rumboot-xflash 0.9.23 - RumBoot firmware updater tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -740,7 +747,8 @@ Reset Sequence options:
   These options control how the target board will be reset
 
   -r method, --reset method
-                        Reset sequence to use (apc base hass mt12505 pl2303)
+                        Reset sequence to use (apc base hass Serial mdb
+                        mt12505 pl2303)
 
 apc reset sequence options:
   --apc-host APC_HOST   APC IP Address/hostname
@@ -759,6 +767,10 @@ hass reset sequence options:
                         Secret token
   --hass-server HASS_SERVER
                         Hass server URL
+
+mdb reset sequence options:
+  --mdb-ctl-port MDB_CTL_PORT
+                        Malina Debug Bridge port
 
 mt12505 reset sequence options:
   --mt12505-serial MT12505_SERIAL
@@ -1098,7 +1110,7 @@ _rumboot-combine_ is a simple to tool to compose a chain of several image file. 
 ~# rumboot-combine --help
 usage: rumboot-combine [-h] -i INPUT -o OUTPUT [-a ALIGN]
 
-rumboot-combine 0.9.22 - RumBoot Image Merger Tool
+rumboot-combine 0.9.23 - RumBoot Image Merger Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
