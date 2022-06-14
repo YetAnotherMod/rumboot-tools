@@ -259,7 +259,7 @@ boot: host: Hit 'X' for X-Modem upload
                 self.cleanup(False)               
                 return False
 
-        if self.pipe.poll() is not None:
+        if self.pipe.poll() is not None and len(self.fromserial) == 0:
             self.socket.sendall(f"boot: host: Back in rom, code {self.pipe.poll()}\n".encode())
             self.cleanup(False)
             return False
