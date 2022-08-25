@@ -14,8 +14,7 @@ class basic:
 
     def append(self, infile):
         infile.seek(0, os.SEEK_END)
-        size = infile.tell()
-        size -= 64 # size of header
+        size = infile.tell() - 64  # without header
         infile.seek(0)
         '''
         if self.fd.tell() and self.align > 1:
@@ -25,17 +24,23 @@ class basic:
         size = infile.tell()
         infile.seek(0)
         '''
+        opos = self.fd.tell()
+
+        datablocks = size // self.align
+        if size % self.align:
+            datablocks += 1
+
+        stop = opos + self.align + self.align * datablocks
+
         data = infile.read()
         self.fd.write(data)
         infile.close()
 
         opos = self.fd.tell()
-        while opos % self.align > 0:
+
+        while opos < stop:
             self.fd.write(b'\00')
             opos = opos + 1
-
-        if size % self.align:
-            self.fd.write(b'\00' * self.align)
 
     def close(self):
         self.fd.close()
