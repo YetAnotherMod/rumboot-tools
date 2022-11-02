@@ -1,0 +1,86 @@
+--- !Chip
+name: o32t
+part: "1888BM028(A)"
+chip_id: 7
+chip_rev: 2
+welcome: host
+baudrate: 115200
+romdump: "o32t-v1.dmp"
+spl_address: 0xC0040000
+memories:
+  mmc0:
+      spl: "o32t/u-boot-spl-dtb-mmc.rbi"
+      device: "mmc0"
+      comment: "SD/MMC Card at SDIO0"
+      protocol: flashwriter
+      offset: 0
+  mmc1:
+      spl: "o32t/u-boot-spl-dtb-mmc.rbi"
+      device: "mmc1"
+      comment: "SD/MMC Card at SDIO1"
+      protocol: flashwriter
+      offset: 0
+  sf00:
+      spl: "o32t/u-boot-spl-dtb-sf.rbi"
+      device: "sf00"
+      comment: "SPI Flash @ SPI0, GPIO0_3 CS"
+      protocol: flashwriter
+      offset: 0
+  sf01:
+      spl: "o32t/u-boot-spl-dtb-sf.rbi"
+      device: "sf01"
+      comment: "SPI Flash @ SPI0, Internal CS"
+      protocol: flashwriter
+      offset: 0
+  sf10:
+      spl: "o32t/u-boot-spl-dtb-sf.rbi"
+      device: "sf10"
+      comment: "SPI Flash @ SPI1, GPIO1_0 CS"
+      protocol: flashwriter
+      offset: 0
+  sf11:
+      spl: "o32t/u-boot-spl-dtb-sf.rbi"
+      device: "sf11"
+      comment: "SPI Flash @ SPI1, Internal CS"
+      protocol: flashwriter
+      offset: 0
+  buggynor: 
+      spl: "o32t/rumboot-oi10-PostProduction-updater-nor-mt150.04.bin"
+      device: "dumb"
+      comment: "NOR Flash (Buggy MT150.04 V0)"
+      protocol: dumb
+      offset: 0
+      size: 4194304
+  buggynor-bootrom: 
+      spl: "o32t/rumboot-oi10-PostProduction-updater-nor-mt150.04-brom.bin"
+      device: "dumb"
+      comment: "NOR Flash (Buggy MT150.04 V0), bootrom section "
+      protocol: dumb
+      offset: 0
+      size: 65536
+dumps: {}
+hacks:
+  skipsync: False  # Doesn't Send U\r\n\r\n at the start. All legacy stuff
+  silentRom: False  # Bootrom is totally silent
+  noxmodem: False  # Chip lacks xmodem implementation
+  noedcl: False  # Chip lacks edcl implementation
+edcl:
+  - name: "Greth #1" 
+    ip: "192.168.3.33"
+    mac: "ec:17:66:ed:c1:1"
+
+  - name: "Greth #2"
+    ip: "192.168.3.34"
+    mac: "ec:17:66:ed:c1:2"
+mt12505:
+  default: [1, 1, 0, 0, 0, 0, 0, 0]
+  mapping:
+    RESET_BTN: 0
+    RESET:  1
+    EMI_ED: 2
+    TMODE:  3
+    SELFTEST: 4
+    HOST: 5
+    UART_SPEED: 6
+    POWER: 7
+...
