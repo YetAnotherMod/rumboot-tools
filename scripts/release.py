@@ -30,9 +30,9 @@ os.system("git add rumboot/__init__.py")
 os.system(f'git commit -s -m \"v{newversion} release\"')
 os.system(f'git tag v{newversion}')
 os.system(f"git push origin master")
-os.system(f"git push github master")
+#os.system(f"git push github master")
 os.system(f"git push origin v{newversion}")
-os.system(f"git push github v{newversion}")
+#os.system(f"git push github v{newversion}")
 
 if os.access('dist',os.R_OK):
     shutil.rmtree('dist')
