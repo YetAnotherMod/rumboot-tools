@@ -151,9 +151,9 @@ This tool adds/checks/updates checksums in existing images. The image must alrea
 usage: rumboot-packimage [-h] -f FILE [-i] [-c] [-C] [-r] [-R relocation] [-Z]
                          [-U] [-z value] [-a value] [-F value value]
                          [--set-data offset value] [-g key] [-s key value]
-                         [-e] [-w WRAP]
+                         [-e] [-E] [-w WRAP]
 
-rumboot-packimage 0.9.27 - Universal RumBoot Image Manipulation Tool
+rumboot-packimage 0.9.28 - Universal RumBoot Image Manipulation Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -206,6 +206,10 @@ optional arguments:
   -e, --reverse-endianness
                         Use this option to reverse endianness of all headers.
                         This will not touch data. For testing only
+  -E, --reverse-data-endianness
+                        Use this option to reverse endianness of data section.
+                        This will not touch header. This might be required for
+                        booting some nmc chips.
   -w WRAP, --wrap WRAP  Use this option to wrap arbitrary data to V1/V2/V3
                         images.
 
@@ -278,7 +282,7 @@ usage: rumboot-xrun [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port] [-b speed]
                     [--pl2303-invert-power] [--pl2303-swap]
                     [-A [PLUSARGS ...]] [-R] [-I] [--replay-no-exit]
 
-rumboot-xrun 0.9.27 - RumBoot X-Modem execution tool
+rumboot-xrun 0.9.28 - RumBoot X-Modem execution tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -692,7 +696,7 @@ usage: rumboot-xflash [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port]
                       [--pl2303-invert-reset] [--pl2303-invert-power]
                       [--pl2303-swap]
 
-rumboot-xflash 0.9.27 - RumBoot firmware updater tool
+rumboot-xflash 0.9.28 - RumBoot firmware updater tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -1108,7 +1112,7 @@ _rumboot-combine_ is a simple to tool to compose a chain of several image file. 
 ~# rumboot-combine --help
 usage: rumboot-combine [-h] -i INPUT -o OUTPUT [-a ALIGN]
 
-rumboot-combine 0.9.27 - RumBoot Image Merger Tool
+rumboot-combine 0.9.28 - RumBoot Image Merger Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
