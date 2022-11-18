@@ -180,16 +180,30 @@ class ImageFormatBase:
             offset = offset + f[0]
         return offset
 
-    def read_element(self, offset, len, whence = os.SEEK_SET):
+    def read_element(self, offset, len, whence = os.SEEK_SET, endian=None):
         self.fd.seek(offset, whence)
         tmp = self.fd.read(len)
-        tmp = int.from_bytes(tmp, self.endian)
+        if endian is None:
+            endian = self.endian
+        tmp = int.from_bytes(tmp, endian)
         return tmp
 
-    def write_element(self, offset, value, len, whence = os.SEEK_SET):
+    def write_element(self, offset, value, len, whence = os.SEEK_SET, endian=None):
         self.fd.seek(offset, whence)
-        self.fd.write(bytearray(value.to_bytes(len, self.endian)))
+        if endian is None:
+            endian = self.endian
+        self.fd.write(bytearray(value.to_bytes(len, endian)))
         return value
+
+    def reverse_data_endianness(self, wordsize=8):
+        self.swap_endian()
+        e = self.endian
+        self.swap_endian()
+        for i in range(0,self.data_length,wordsize):
+            offset = self.get_header_length() + i
+            p = self.read_element(offset, wordsize)
+            self.write_element(offset, p, wordsize, endian=e)
+            o = self.read_element(offset, wordsize)
 
     def read64(self, offset, whence = os.SEEK_SET):
         return self.read_element(offset, 8, whence)
@@ -202,6 +216,9 @@ class ImageFormatBase:
 
     def read8(self, offset, whence = os.SEEK_SET):
         return self.read_element(offset, 1, whence)
+
+    def write64(self, offset, value, whence = os.SEEK_SET):
+        return self.write_element(offset, value, 8, whence)
 
     def write32(self, offset, value, whence = os.SEEK_SET):
         return self.write_element(offset, value, 4, whence)
@@ -222,10 +239,12 @@ class ImageFormatBase:
         return crc32
 
     def swap_endian(self):
-        if (self.endian == "big"):
+        if self.endian == "big":
                 self.endian = "little"
-        if (self.endian == "little"):
+        elif self.endian == "little":
                 self.endian = "big"
+        else:
+            raise Exception("internal error")
 
     def check(self):
         self.read_header()

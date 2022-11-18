@@ -80,6 +80,11 @@ def cli():
                         help='''Use this option to reverse endianness of all headers. This will not touch data.
                                 For testing only
                         ''')
+    parser.add_argument('-E', '--reverse-data-endianness',
+                        action="store_true",
+                        help='''Use this option to reverse endianness of data section. This will not touch header.
+                                This might be required for booting some nmc chips.
+                        ''')
     parser.add_argument('-w', '--wrap',
                         nargs=1,
                         help='''Use this option to wrap arbitrary data to V1/V2/V3 images.
@@ -162,6 +167,11 @@ def cli():
 
     if opts.align:
         t.align(opts.align[0])
+        opts.checksum_fix_length = True
+
+    if opts.reverse_data_endianness:
+        print("Reversing data endianness. I hope you know what you are doing.")
+        t.reverse_data_endianness(8)
         opts.checksum_fix_length = True
 
     if (opts.checksum_fix_length):
