@@ -91,6 +91,7 @@ class ImageFormatV3(ImageFormatBase):
             if self._flags[f]:
                 the_flags |= 1<<k
         self.header["flags"]=the_flags
+        self.write_header()
         self.read_flags()
 
     def serialize_flags(self):
