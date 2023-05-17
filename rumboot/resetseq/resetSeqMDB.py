@@ -10,7 +10,7 @@ from serial import Serial
 class mdb(base):
     name = "Malina Debug Bridge"
     swap   = False
-    supported = ["POWER", "RESET", "HOST", "EDCL_LOCK"]
+    supported = ["POWER", "RESET", "HOST", "ELOCK"]
 
     def __init__(self, terminal, opts):
         port = os.path.realpath(terminal.ser._port)
@@ -21,23 +21,25 @@ class mdb(base):
             self.ctlport = f"/dev/ttyACM{id}"
         self.serial = Serial(self.ctlport, 115200)        
         super().__init__(terminal, opts)
-        self["EDCL_LOCK"] = 0
+        self["ELOCK"] = 0
         self["HOST"] = 0
 
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
 
-        if "HOST" in self._states and "EDCL_LOCK" in self._states:
-            self.serial.write(f"bootm {self._states['HOST']} {self._states['EDCL_LOCK']}\r\n".encode())
+        if "HOST" in self._states:
+            self.serial.write(f"HOST {self._states['HOST']}\r\n".encode())
+
+        if "ELOCK" in self._states:
+            self.serial.write(f"ELOCK {self._states['ELOCK']}\r\n".encode())
+
         if "RESET" in self._states:
-            self.serial.write(f"rst {1 - self._states['RESET']}\r\n".encode())
-
-
+            self.serial.write(f"RESET {1 - self._states['RESET']}\r\n".encode())
 
     def get_options(self):
         return {
                 "mdb-ctl-port" : {
-                    "help" : "Malina Debug Bridge port",
+                    "help" : "Malina Debug Bridge control port",
                     "default" : None,
                 },
             }
