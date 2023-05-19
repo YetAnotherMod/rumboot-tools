@@ -37,9 +37,7 @@ class powerhub(base):
         wIndex = 10 #methodId
 
         data = bytes([self.port_id, value])
-        print(data)
         ret = self.dev.ctrl_transfer(reqType, bReq, wVal, wIndex, data)
-        print(ret)
 
 
 
