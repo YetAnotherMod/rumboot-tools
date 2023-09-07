@@ -153,7 +153,7 @@ usage: rumboot-packimage [-h] -f FILE [-i] [-c] [-C] [-r] [-R relocation] [-Z]
                          [--set-data offset value] [-g key] [-s key value]
                          [-e] [-E] [-w WRAP]
 
-rumboot-packimage 0.9.28 - Universal RumBoot Image Manipulation Tool
+rumboot-packimage 0.9.29 - Universal RumBoot Image Manipulation Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -163,7 +163,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  image file
   -i, --info            Show information about the image
@@ -267,7 +267,6 @@ This tool directly uploads a binary to the target board, executes it and provide
 
 ```
 ~# rumboot-xrun --help
-[!] Using configuration file: /home/necromant/.rumboot.yaml
 usage: rumboot-xrun [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port] [-b speed]
                     [-e] [--force-static-arp] [--edcl-ip EDCL_IP]
                     [--edcl-mac EDCL_MAC] [--edcl-timeout EDCL_TIMEOUT]
@@ -280,9 +279,10 @@ usage: rumboot-xrun [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port] [-b speed]
                     [--mdb-ctl-port MDB_CTL_PORT]
                     [--mt12505-serial MT12505_SERIAL] [--pl2303-invert-reset]
                     [--pl2303-invert-power] [--pl2303-swap]
+                    [--powerhub-usb-port POWERHUB_USB_PORT]
                     [-A [PLUSARGS ...]] [-R] [-I] [--replay-no-exit]
 
-rumboot-xrun 0.9.28 - RumBoot X-Modem execution tool
+rumboot-xrun 0.9.29 - RumBoot X-Modem execution tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -292,7 +292,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Image file (may be specified multiple times)
   -R, --rebuild         Attempt to rebuild/update target before uploading
@@ -321,7 +321,7 @@ Reset Sequence options:
 
   -r method, --reset method
                         Reset sequence to use (apc base hass Serial mdb
-                        mt12505 pl2303)
+                        mt12505 pl2303 powerhub)
 
 apc reset sequence options:
   --apc-host APC_HOST   APC IP Address/hostname
@@ -343,7 +343,7 @@ hass reset sequence options:
 
 mdb reset sequence options:
   --mdb-ctl-port MDB_CTL_PORT
-                        Malina Debug Bridge port
+                        Malina Debug Bridge control port
 
 mt12505 reset sequence options:
   --mt12505-serial MT12505_SERIAL
@@ -355,6 +355,10 @@ pl2303 reset sequence options:
   --pl2303-invert-power
                         Invert pl2303 power signal
   --pl2303-swap         Swap pl2303 reset and power mapping
+
+powerhub reset sequence options:
+  --powerhub-usb-port POWERHUB_USB_PORT
+                        powerhub port number
 
 Plusargs parser options:
   
@@ -679,7 +683,6 @@ Writing will always be about twice slower than reading, since readback is usuall
 
 ```
 ~# rumboot-xflash --help
-[!] Using configuration file: /home/necromant/.rumboot.yaml
 usage: rumboot-xflash [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port]
                       [-b speed] [-e] [--force-static-arp] [--edcl-ip EDCL_IP]
                       [--edcl-mac EDCL_MAC] [--edcl-timeout EDCL_TIMEOUT] [-v]
@@ -694,9 +697,9 @@ usage: rumboot-xflash [-h] [-f FILE] [-c chip_id] [-l LOG] [-p port]
                       [--mdb-ctl-port MDB_CTL_PORT]
                       [--mt12505-serial MT12505_SERIAL]
                       [--pl2303-invert-reset] [--pl2303-invert-power]
-                      [--pl2303-swap]
+                      [--pl2303-swap] [--powerhub-usb-port POWERHUB_USB_PORT]
 
-rumboot-xflash 0.9.28 - RumBoot firmware updater tool
+rumboot-xflash 0.9.29 - RumBoot firmware updater tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -706,7 +709,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Image file (may be specified multiple times)
   -v, --verbose         Print serial debug messages during update
@@ -750,7 +753,7 @@ Reset Sequence options:
 
   -r method, --reset method
                         Reset sequence to use (apc base hass Serial mdb
-                        mt12505 pl2303)
+                        mt12505 pl2303 powerhub)
 
 apc reset sequence options:
   --apc-host APC_HOST   APC IP Address/hostname
@@ -772,7 +775,7 @@ hass reset sequence options:
 
 mdb reset sequence options:
   --mdb-ctl-port MDB_CTL_PORT
-                        Malina Debug Bridge port
+                        Malina Debug Bridge control port
 
 mt12505 reset sequence options:
   --mt12505-serial MT12505_SERIAL
@@ -784,6 +787,10 @@ pl2303 reset sequence options:
   --pl2303-invert-power
                         Invert pl2303 power signal
   --pl2303-swap         Swap pl2303 reset and power mapping
+
+powerhub reset sequence options:
+  --powerhub-usb-port POWERHUB_USB_PORT
+                        powerhub port number
 
 ```
 ```
@@ -1112,7 +1119,7 @@ _rumboot-combine_ is a simple to tool to compose a chain of several image file. 
 ~# rumboot-combine --help
 usage: rumboot-combine [-h] -i INPUT -o OUTPUT [-a ALIGN]
 
-rumboot-combine 0.9.28 - RumBoot Image Merger Tool
+rumboot-combine 0.9.29 - RumBoot Image Merger Tool
 
 (C) 2018-2021 Andrew Andrianov <andrew@ncrmnt.org>, STC "Module"
 https://module.ru / https://github.com/RC-MODULE
@@ -1122,7 +1129,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
                         Input image file (may be specified several times)
